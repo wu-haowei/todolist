@@ -195,7 +195,7 @@
         DATABASE_ID: '92e483f54cb84a9397e5c3df2664e1f4', // Replace with your database ID
         input: {
           title: '',
-          Status: '925d6474-e1d5-4091-9f6e-83d636092159',//this.statusList[0].status.id
+          Status: 'f3e20231-c23b-4810-b7f8-3949eac78b63',//this.statusList[0].status.id
           content: ''
         },
         dataSoure: [],
@@ -456,6 +456,7 @@
 
           axios(config)
             .then(response => {
+              this.get();
               this.$toast.success('This is a success!');
             })
             .catch(error => {
