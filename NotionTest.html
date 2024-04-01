@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"
+    integrity="sha512-PJa3oQSLWRB7wHZ7GQ/g+qyv6r4mbuhmiDb8BjSFZ8NZ2a42oTtAq5n0ucWAwcQDlikAtkub+tPVCw4np27WCg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link rel="stylesheet" href="https://unpkg.com/vue-toastification/dist/index.css">
+
+
+  <!-- Lastly add this package -->
+  <script src="/todolist/myJS/index.min.js"></script>
+  <link href="/todolist/myJS/theme-bootstrap.css" rel="stylesheet">
+  <script src="/myJS/index.min.js"></script>
+  <link href="/myJS/theme-bootstrap.css" rel="stylesheet">
+
+  <title>Document</title>
+  <style>
+    /* 整個新增資料區塊樣式 */
+    .addArea {
+      display: grid;
+      grid-template-columns: auto;
+      gap: 10px;
+      /* 元素之間的間距 */
+    }
+
+    /* 每個子區塊的樣式 */
+    .addArea div {
+      grid-template-columns: auto 1fr;
+      /* 第一列自動調整寬度，第二列填充剩餘空間 */
+      gap: 10px;
+      /* 元素之間的間距 */
+    }
+
+    /* 標籤樣式 */
+    label {
+      align-self: center;
+      /* 垂直置中 */
+    }
+
+    /* 文字輸入框和選擇框樣式 */
+    input[type="text"],
+    textarea,
+    select {
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+
+    /* 按鈕樣式 */
+    .addArea button {
+      padding: 8px 15px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .addArea button:hover {
+      background-color: #0056b3;
+    }
+
+
+
+    /* 整個表格樣式 */
+    .mytable {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    /* 表頭樣式 */
+    .mytable thead tr th {
+      background-color: #007bff;
+      color: #fff;
+      padding: 10px;
+      text-align: left;
+    }
+
+    /* 表格內容樣式 */
+    .mytable td,
+    .mytable th {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+
+    /* 按鈕樣式 */
+    .mytable button {
+      padding: 5px 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .mytable button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+
+    <div class="addArea">
+
+
+      <div>
+        <!-- <label for="title"> 主旨：<input id="title" v-model.trim="input.title" style="width: 100%;" /></label> -->
+        <label for="title"> 標題：<textarea name="textarea" id="textarea" rows="6" cols="20" placeholder="標題"
+            style="width:100%;" v-model="input.title"> </textarea></label>
+      </div>
+      <div>
+        <label for="textarea"> 內容：<textarea name="textarea" id="textarea" rows="6" cols="20" placeholder="內容"
+            style="width:100%;" v-model="input.content"> </textarea></label>
+      </div>
+      <div>
+        <label for="status"> 狀態：<select name="status" id="status" v-model="input.Status">
+            <option :value="item.status.id" v-for="item of statusList" :key="item.status.id">{{item.status.name}}
+            </option>
+          </select></label>
+        <button @click="save()">送出</button>
+      </div>
+    </div>
+
+
+
+    <button @click="get()">全部資料</button>
+
+    <table class="mytable">
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>標題</th>
+          <th>內容</th>
+          <th>新增日期</th>
+          <th>狀態</th>
+          <th>Tags</th>
+          <th>功能</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="item of dataSoure" :key="item.id">
+          <th>{{item.id}}</th>
+          <th>
+            <input type="text" v-if="item.isCreate" v-model="item.properties.Name.title[0].plain_text">
+            <span v-else>{{item.properties.Name.title[0].plain_text}}</span>
+          </th>
+          <th>
+            <textarea name="textarea" rows="6" cols="40" v-model="item.properties.Content.rich_text[0].text.content"
+              v-if="item.isCreate"> </textarea>
+            <span v-else>{{item.properties.Content.rich_text[0].text.content}}</span>
+          </th>
+          <th>
+            <input type="text" v-if="item.isCreate" v-model="item.created_time" type="datetime">
+            <span v-else>{{item.created_time}}</span>
+          </th>
+
+
+          <th>
+            <select name="status" id="status" v-model="item.properties.Status.status.id" v-if="item.isCreate">
+              <option :value="item.status.id" v-for="item of statusList" :key="item.status.id">{{item.status.name}}
+              </option>
+            </select>
+            <span v-else>{{item.properties.Status.status.name}}</span>
+
+          </th>
+          <th>{{item.properties.Tags.multi_select.map(m=>m.name).join()}}</th>
+
+          <th>
+            <button @click="update(item)">修改/保存</button>
+            <button @click="deleted(item)">刪除</button>
+          </th>
+
+
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+
+  <script>
+    //https://www.notion.so/my-integrations/internal/1d2dc1e0527242b28c5b02aef93976ae
+    Vue.use(VueToast);
+    let vm = new Vue({
+      el: '#app',
+      data: {
+        NOTION_API_KEY: 'secret_Fi1Gvgpc7MZms6MOzushatyOPej5tUClkvcWvmVKNIA', // Replace with your Notion API key
+        DATABASE_ID: '92e483f54cb84a9397e5c3df2664e1f4', // Replace with your database ID
+        input: {
+          title: '',
+          Status: '925d6474-e1d5-4091-9f6e-83d636092159',//this.statusList[0].status.id
+          content: ''
+        },
+        dataSoure: [],
+        statusList: [
+          {
+            "id": "IDEP",
+            "type": "status",
+            "status": {
+              "id": "f3e20231-c23b-4810-b7f8-3949eac78b63",
+              "name": "Not started",
+              "color": "default"
+            }
+          },
+          {
+            "id": "IDEP",
+            "type": "status",
+            "status": {
+              "id": "298e2733-faba-46d1-892c-84c65fad4032",
+              "name": "In progress",
+              "color": "blue"
+            }
+          },
+          {
+            "id": "IDEP",
+            "type": "status",
+            "status": {
+              "id": "8afdfb73-5d80-47a8-9e88-63bc047c09c5",
+              "name": "Done",
+              "color": "green"
+            }
+          },
+        ]
+      },
+      computed: {
+        reversedMessage: function () {
+        },
+        newMsg: {
+          get() {
+          },
+          set(val) {
+          }
+        },
+        getData() {
+          this.dataSoure.forEach(f => { console.log(f.isCreate) })
+          return this.dataSoure;
+        }
+
+      },
+      methods: {
+        update(item) {
+          //https://developers.notion.com/reference/patch-page
+
+          let d = [];
+          if (!item.isCreate) {
+            item.isCreate = !item.isCreate;
+
+            this.dataSoure.forEach(f => {
+              d.push(f);
+            })
+            this.dataSoure = [];
+            this.dataSoure = d;
+
+            return;
+          } else {
+            item.isCreate = !item.isCreate;
+          }
+          this.dataSoure.forEach(f => {
+            d.push(f);
+          })
+          this.dataSoure = [];
+          this.dataSoure = d;
+
+
+          const url = `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/pages/${item.id}`;
+          const headers = {
+            'Authorization': `${this.NOTION_API_KEY}`,
+            'Content-Type': 'application/json',
+            'Notion-Version': '2022-06-28',
+            'x-requested-with': 'XMLHttpRequest'
+
+          };
+
+          const data = {
+            "properties": {
+              "Name": {
+                "title": [
+                  {
+                    "text": {
+                      "content": item.properties.Name.title[0].plain_text
+                    }
+                  }
+                ]
+              },
+              // "Tags": { "type": "multi_select", "multi_select": [{ "name": "Daily" }] },
+              "Status": this.statusList.filter(f => { if (f.status.id == item.properties.Status.status.id) { return f; } })[0],
+              "Content": {
+                "rich_text": [
+                  {
+                    "text": {
+                      "content": item.properties.Content.rich_text[0].text.content
+                    }
+                  }
+                ]
+              }
+            },
+          };
+
+          try {
+            const response = axios.patch(url, data, { headers });
+            this.$toast.success('This is a success!');
+          } catch (error) {
+            this.$toast.error(error.response.data.message);
+          }
+        },
+        deleted(item) {
+
+
+
+          var yes = confirm('你確定嗎？');
+
+          if (!yes) {
+            return;
+          } else {
+            const url = `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/pages/${item.id}`;
+            const headers = {
+              'Authorization': `${this.NOTION_API_KEY}`,
+              'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28',
+              'x-requested-with': 'XMLHttpRequest'
+            };
+
+            const data = {
+              "properties": {
+                "IsDaleted": {
+                  "checkbox": true
+                }
+              }
+            };
+
+            try {
+              axios.patch(url, data, { headers }).then((res) => {
+                this.dataSoure = this.dataSoure.filter(f => { if (f != item) { return f; } });
+                // this.get();//CORS-anywhere 請求次數限制 
+              })
+
+            } catch (error) {
+              this.$toast.error(error.response.data.message);
+            }
+
+
+          }
+
+
+
+        },
+        get() {
+          //https://developers.notion.com/reference/post-database-query
+          //https://developers.notion.com/reference/post-database-query-filter //過濾資料庫
+
+          const data =
+          {
+            "filter": {
+              "property": "IsDaleted",
+              "checkbox": {
+                "equals": false
+              }
+            }
+          };
+          const config = {
+            method: 'post',
+            url: `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/databases/${this.DATABASE_ID}/query`,
+            headers: {
+              'Authorization': this.NOTION_API_KEY,
+              'Access-Control-Allow-Origin': '*',
+              'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28',
+              'x-requested-with': 'XMLHttpRequest'
+            },
+            data: data
+          };
+
+          axios(config)
+            .then(response => {
+              console.log(response);
+              this.dataSoure = response.data.results;
+
+              this.dataSoure.forEach(element => {
+                Object.assign(element, { isCreate: false })
+              });
+
+
+              // this.$toast.success('This is a success!');
+            })
+            .catch(error => {
+              this.$toast.error(error.response.data.message);
+              // this.$toast.error(error.response);
+
+            });
+        },
+        save() {
+
+
+          if (this.input.title == '') {
+            this.$toast.warning('標題不可空白');
+            return;
+          }
+
+
+          //https://developers.notion.com/reference/create-a-database
+          const data = {
+            "parent": {
+              "database_id": this.DATABASE_ID
+            },
+            // "icon": {
+            //   "emoji": "🥬"
+            // },
+            "cover": {
+              "external": {
+                "url": "https://upload.wikimedia.org/wikipedia/commons/6/62/Tuscankale.jpg"
+              }
+            },
+            "properties": {
+              "Name": {
+                "title": [
+                  {
+                    "text": {
+                      "content": this.input.title
+                    }
+                  }
+                ]
+              },
+              "Tags": { "type": "multi_select", "multi_select": [{ "name": "Daily" }] },
+              //   "Status": this.statusList.filter(f => { if (f.status.id == this.input.Status) { return f; } })[0],
+              "Content": {
+                "rich_text": [
+                  {
+                    "text": {
+                      "content": this.input.content
+                    }
+                  }
+                ]
+              }
+            },
+
+          };
+          console.log(data);
+          const config = {
+            method: 'post',
+            url: 'https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/pages',
+            headers: {
+              'Authorization': this.NOTION_API_KEY,
+              'Content-Type': 'application/json',
+              'Notion-Version': '2022-06-28',
+              'x-requested-with': 'XMLHttpRequest'
+            },
+            data: data
+          };
+
+          axios(config)
+            .then(response => {
+              this.$toast.success('This is a success!');
+            })
+            .catch(error => {
+              // console.error(error);
+              this.$toast.error(error.response.data.message);
+            });
+        },
+      },
+      watch: {
+        firstName: function (val) {
+        },
+        // dataSoure: {
+        //   handler(n, o) {
+        //     console.log(n, o);
+        //   },
+        //   deep: true,
+        //   // immediate: true
+        // },
+        // dataSoure() {
+
+        // },
+        // 'input': {
+        //   handler(n, o) {
+        //     console.log(n, o);
+        //   },
+        //   deep: true,
+        //   // immediate: true
+        // },
+      },
+      mounted() {
+        // this.get();
+      },
+    })
+  </script>
+
+
+</body>
+
+</html>
