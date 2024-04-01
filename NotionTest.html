@@ -148,7 +148,8 @@
         <tr v-for="item of dataSoure" :key="item.id">
           <th>{{item.id}}</th>
           <th>
-            <input type="text" v-if="item.isCreate" v-model="item.properties.Name.title[0].plain_text">
+            <textarea name="textarea" rows="6" cols="40" v-model="item.properties.Name.title[0].plain_text"
+              v-if="item.isCreate"> </textarea>
             <span v-else>{{item.properties.Name.title[0].plain_text}}</span>
           </th>
           <th>
@@ -157,8 +158,10 @@
             <span v-else>{{item.properties.Content.rich_text[0].text.content}}</span>
           </th>
           <th>
-            <input type="text" v-if="item.isCreate" v-model="item.created_time" type="datetime">
-            <span v-else>{{item.created_time}}</span>
+            <!-- <input type="text" v-if="item.isCreate" v-model="item.created_time" type="datetime"> -->
+            <!-- <span v-else>{{item.created_time}}</span> -->
+            <span >{{item.created_time}}</span>
+
           </th>
 
 
