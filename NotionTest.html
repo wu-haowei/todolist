@@ -8,6 +8,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"
     integrity="sha512-PJa3oQSLWRB7wHZ7GQ/g+qyv6r4mbuhmiDb8BjSFZ8NZ2a42oTtAq5n0ucWAwcQDlikAtkub+tPVCw4np27WCg=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
   <link rel="stylesheet" href="https://unpkg.com/vue-toastification/dist/index.css">
 
 
@@ -16,6 +18,11 @@
   <link href="/todolist/myJS/theme-bootstrap.css" rel="stylesheet">
   <script src="/myJS/index.min.js"></script>
   <link href="/myJS/theme-bootstrap.css" rel="stylesheet">
+
+  <!-- https://mengxiong10.github.io/vue2-datepicker/index.html -->
+  <script src="/node_modules//vue2-datepicker/index.js"></script>
+  <link href="/node_modules/vue2-datepicker/index.css" rel="stylesheet">
+
 
   <title>Document</title>
   <style>
@@ -110,6 +117,13 @@
     <div class="addArea">
 
 
+
+
+
+
+
+
+
       <div>
         <!-- <label for="title"> 主旨：<input id="title" v-model.trim="input.title" style="width: 100%;" /></label> -->
         <label for="title"> 標題：<textarea name="textarea" id="textarea" rows="6" cols="20" placeholder="標題"
@@ -127,6 +141,7 @@
         <button @click="save()">送出</button>
       </div>
     </div>
+
 
 
 
@@ -155,12 +170,21 @@
           <th>
             <textarea name="textarea" rows="6" cols="40" v-model="item.properties.Content.rich_text[0].text.content"
               v-if="item.isCreate"> </textarea>
-            <span v-else>{{item.properties.Content.rich_text[0].text.content}}</span>
+            <span v-else v-html="item.properties.Content.rich_text[0].text.content"></span>
           </th>
           <th>
-            <!-- <input type="text" v-if="item.isCreate" v-model="item.created_time" type="datetime"> -->
-            <!-- <span v-else>{{item.created_time}}</span> -->
-            <span >{{item.created_time}}</span>
+            <!-- <input  v-if="item.isCreate" v-model="item.created_time" id="created_time"> -->
+
+            <date-picker v-if="item.isCreate" v-model="item.created_time" type="datetime" placeholder="Select datetime"
+              :show-time-panel="showTimePanel" @close="handleOpenChange">
+              <template v-slot:footer>
+                <button class="mx-btn mx-btn-text" @click="toggleTimePanel">
+                  {{ showTimePanel ? 'select date' : 'select time' }}
+                </button>
+              </template>
+            </date-picker>
+            <span v-else>{{item.created_time}}</span>
+            <!-- <span>{{item.created_time}}</span> -->
 
           </th>
 
@@ -190,15 +214,25 @@
 
   <script>
     //https://www.notion.so/my-integrations/internal/1d2dc1e0527242b28c5b02aef93976ae
+
     Vue.use(VueToast);
     let vm = new Vue({
       el: '#app',
       data: {
-        NOTION_API_KEY: 'secret_Fi1Gvgpc7MZms6MOzushatyOPej5tUClkvcWvmVKNIA', // Replace with your Notion API key
-        DATABASE_ID: '92e483f54cb84a9397e5c3df2664e1f4', // Replace with your database ID
+        value1: null,
+        value2: [],
+        showTimePanel: false,
+        showTimeRangePanel: false,
+        // baseUrl:'https://localhost:7165/Home/SetOrderTable',
+        baseUrl: 'https://5b81-211-23-119-49.ngrok-free.app/Home/SetOrderTable',
+
+        // NOTION_API_KEY: 'secret_Fi1Gvgpc7MZms6MOzushatyOPej5tUClkvcWvmVKNIA', // Replace with your Notion API key
+        NOTION_API_KEY: 'secret_zlexLdiQEecXDD7oS3U250S9AnMpZr3FAKfUbJ8CHH4', // Replace with your Notion API key
+        // DATABASE_ID: '92e483f54cb84a9397e5c3df2664e1f4', // Replace with your database ID
+        DATABASE_ID: 'c7cb98b6a5c24cc5a01e9a41d5f318a2', // Replace with your database ID
         input: {
           title: '',
-          Status: 'f3e20231-c23b-4810-b7f8-3949eac78b63',//this.statusList[0].status.id
+          Status: "9ba13318-c767-4fce-a161-f8620fb80550",//this.statusList[0].status.id
           content: ''
         },
         dataSoure: [],
@@ -207,7 +241,7 @@
             "id": "IDEP",
             "type": "status",
             "status": {
-              "id": "f3e20231-c23b-4810-b7f8-3949eac78b63",
+              "id": "9ba13318-c767-4fce-a161-f8620fb80550",
               "name": "Not started",
               "color": "default"
             }
@@ -216,7 +250,7 @@
             "id": "IDEP",
             "type": "status",
             "status": {
-              "id": "298e2733-faba-46d1-892c-84c65fad4032",
+              "id": "b84ee059-36f1-4f6d-b925-18cf3c49b60a",
               "name": "In progress",
               "color": "blue"
             }
@@ -225,7 +259,7 @@
             "id": "IDEP",
             "type": "status",
             "status": {
-              "id": "8afdfb73-5d80-47a8-9e88-63bc047c09c5",
+              "id": "8b3daeeb-b5de-4bcc-9067-8af1ddb356fb",
               "name": "Done",
               "color": "green"
             }
@@ -248,7 +282,19 @@
 
       },
       methods: {
-        update(item) {
+        toggleTimePanel() {
+          this.showTimePanel = !this.showTimePanel;
+        },
+        toggleTimeRangePanel() {
+          this.showTimeRangePanel = !this.showTimeRangePanel;
+        },
+        handleOpenChange() {
+          this.showTimePanel = false;
+        },
+        handleRangeClose() {
+          this.showTimeRangePanel = false;
+        },
+        async update(item) {
           //https://developers.notion.com/reference/patch-page
 
           let d = [];
@@ -271,13 +317,14 @@
           this.dataSoure = [];
           this.dataSoure = d;
 
-
-          const url = `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/pages/${item.id}`;
+          // const url = `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/pages/${item.id}`;
+          const url = `${this.baseUrl}?url=https://api.notion.com/v1/pages/${item.id}`;
           const headers = {
             'Authorization': `${this.NOTION_API_KEY}`,
             'Content-Type': 'application/json',
             'Notion-Version': '2022-06-28',
-            'x-requested-with': 'XMLHttpRequest'
+            'x-requested-with': 'XMLHttpRequest',
+            "ngrok-skip-browser-warning": "69420",
 
           };
 
@@ -307,7 +354,8 @@
           };
 
           try {
-            const response = axios.patch(url, data, { headers });
+            const response =await axios.patch(url, data, { headers });
+            await this.get();
             this.$toast.success('This is a success!');
           } catch (error) {
             this.$toast.error(error.response.data.message);
@@ -315,14 +363,14 @@
         },
         deleted(item) {
 
-
-
           var yes = confirm('你確定嗎？');
 
           if (!yes) {
             return;
           } else {
-            const url = `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/pages/${item.id}`;
+            // const url = `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/pages/${item.id}`;
+            const url = `${this.baseUrl}?url=https://api.notion.com/v1/pages/${item.id}`;
+
             const headers = {
               'Authorization': `${this.NOTION_API_KEY}`,
               'Content-Type': 'application/json',
@@ -347,14 +395,9 @@
             } catch (error) {
               this.$toast.error(error.response.data.message);
             }
-
-
           }
-
-
-
         },
-        get() {
+        async get() {
           //https://developers.notion.com/reference/post-database-query
           //https://developers.notion.com/reference/post-database-query-filter //過濾資料庫
 
@@ -369,13 +412,15 @@
           };
           const config = {
             method: 'post',
-            url: `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/databases/${this.DATABASE_ID}/query`,
+            // url: `https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/databases/${this.DATABASE_ID}/query`,
+            url: `${this.baseUrl}?url=https://api.notion.com/v1/databases/${this.DATABASE_ID}/query`,
             headers: {
               'Authorization': this.NOTION_API_KEY,
               'Access-Control-Allow-Origin': '*',
               'Content-Type': 'application/json',
               'Notion-Version': '2022-06-28',
-              'x-requested-with': 'XMLHttpRequest'
+              "ngrok-skip-browser-warning": "69420",
+              // 'x-requested-with': 'XMLHttpRequest'
             },
             data: data
           };
@@ -383,7 +428,7 @@
           axios(config)
             .then(response => {
               console.log(response);
-              this.dataSoure = response.data.results;
+              this.dataSoure = JSON.parse(response.data).results;
 
               this.dataSoure.forEach(element => {
                 Object.assign(element, { isCreate: false })
@@ -447,12 +492,14 @@
           console.log(data);
           const config = {
             method: 'post',
-            url: 'https://cors-anywhere.herokuapp.com/https://api.notion.com/v1/pages',
+            url: `${this.baseUrl}?url=https://api.notion.com/v1/pages`,
             headers: {
               'Authorization': this.NOTION_API_KEY,
               'Content-Type': 'application/json',
               'Notion-Version': '2022-06-28',
-              'x-requested-with': 'XMLHttpRequest'
+              'x-requested-with': 'XMLHttpRequest',
+              "ngrok-skip-browser-warning": "69420",
+
             },
             data: data
           };
@@ -461,6 +508,19 @@
             .then(response => {
               this.get();
               this.$toast.success('This is a success!');
+
+              Object.keys(this.input).forEach(f => {
+                if (f == 'Status') {
+                  this.input[f] = "9ba13318-c767-4fce-a161-f8620fb80550"
+                } else {
+                  this.input[f] = '';
+                }
+              }
+
+              )
+
+
+
             })
             .catch(error => {
               // console.error(error);
