@@ -156,6 +156,7 @@
           <th>新增日期</th>
           <th>狀態</th>
           <th>Tags</th>
+          <th>附件</th>
           <th>功能</th>
         </tr>
       </thead>
@@ -198,7 +199,7 @@
 
           </th>
           <th>{{item.properties.Tags.multi_select.map(m=>m.name).join()}}</th>
-
+          <!-- <th>{{item.properties.'iles & media'.files[0].file.url}}</th> -->
           <th>
             <button @click="update(item)">修改/保存</button>
             <button @click="deleted(item)">刪除</button>
@@ -224,7 +225,7 @@
         showTimePanel: false,
         showTimeRangePanel: false,
         // baseUrl:'https://localhost:7165/Home/SetOrderTable',
-        baseUrl: 'https://5b81-211-23-119-49.ngrok-free.app/Home/SetOrderTable',
+        baseUrl: 'https://036d-211-23-119-49.ngrok-free.app/Home/SetOrderTable',
 
         // NOTION_API_KEY: 'secret_Fi1Gvgpc7MZms6MOzushatyOPej5tUClkvcWvmVKNIA', // Replace with your Notion API key
         NOTION_API_KEY: 'secret_zlexLdiQEecXDD7oS3U250S9AnMpZr3FAKfUbJ8CHH4', // Replace with your Notion API key
